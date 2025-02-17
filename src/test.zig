@@ -1,5 +1,7 @@
 const std = @import("std");
 const lib = @import("lib.zig");
+var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+const allocator = gpa.allocator();
 
 // ✅ Test cases pour isalpha
 test "isalpha" {
@@ -96,4 +98,82 @@ test "tolower" {
     try std.testing.expect(lib.tolower('a') == 'a');
     try std.testing.expect(lib.tolower('z') == 'z');
     try std.testing.expect(lib.tolower(255) == 255);
+}
+
+// ✅ Test cases pour strlen
+test "strlen" {
+    try std.testing.expect(lib.strlen("") == 0);
+    try std.testing.expect(lib.strlen("Hello") == 5);
+}
+
+// ✅ Test cases pour strchr
+test "strchr" {
+    try std.testing.expectEqual(null, lib.strchr("", 'e'));
+    try std.testing.expectEqualStrings("Hello", lib.strchr("Hello", 'H').?);
+    try std.testing.expectEqualStrings("ello", lib.strchr("Hello", 'e').?);
+    try std.testing.expectEqualStrings("llo", lib.strchr("Hello", 'l').?);
+    try std.testing.expectEqualStrings("o", lib.strchr("Hello", 'o').?);
+}
+
+// ✅ Test cases pour strrchr
+test "strrchr" {
+    try std.testing.expectEqual(null, lib.strrchr("", 'e'));
+    try std.testing.expectEqualStrings("Hello", lib.strrchr("Hello", 'H').?);
+    try std.testing.expectEqualStrings("ello", lib.strrchr("Hello", 'e').?);
+    try std.testing.expectEqualStrings("lo", lib.strrchr("Hello", 'l').?);
+    try std.testing.expectEqualStrings("o", lib.strrchr("Hello", 'o').?);
+}
+
+// ✅ Test cases pour strcmp
+test "strcmp" {
+    try std.testing.expectEqual(1, lib.strcmp("","e"));
+    try std.testing.expectEqual(0, lib.strcmp("Hello","He"));
+    try std.testing.expectEqual(1, lib.strcmp("He","Hello"));
+    try std.testing.expectEqual(1, lib.strcmp("H","Hello"));
+    try std.testing.expectEqual(2, lib.strcmp("Hello","Hello"));
+    try std.testing.expectEqual(2, lib.strcmp("Hello World","Hello World"));
+    try std.testing.expectEqual(1, lib.strcmp("Hello","abcd"));
+}
+
+// // ✅ Test cases pour atoi
+test "atoi" {
+    try std.testing.expectEqual(lib.atoi("42"), 42);
+    try std.testing.expectEqual(lib.atoi("   123"), 123);
+    try std.testing.expectEqual(lib.atoi("-789"), -789);
+    try std.testing.expectEqual(lib.atoi("+456"), 456);
+    try std.testing.expectEqual(lib.atoi("2147483647"), 2147483647); // max i32
+    try std.testing.expectEqual(lib.atoi("-2147483648"), -2147483648); // min i32
+    try std.testing.expectEqual(lib.atoi("9999999999"), 9999999999);
+    try std.testing.expectEqual(lib.atoi("-9999999999"), -9999999999);
+    try std.testing.expectEqual(lib.atoi("999999999999999999999999999999999999999999999999"), error.Overflow); // overflow
+    try std.testing.expectEqual(lib.atoi("-99999999999999999999999999999999999999999999999"), error.Overflow); // underflow
+    try std.testing.expectEqual(lib.atoi("42abc"), 42); // Ignore les caractères après les chiffres
+    try std.testing.expectEqual(lib.atoi(""), 0); // Retourne 0 si la chaîne est vide
+}
+
+// // ✅ Test cases pour strnstr
+test "strnstr" {
+    try std.testing.expectEqualStrings("World", try lib.strnstr("Hello World", "World", 11));
+    try std.testing.expectEqualStrings("Hello World All", try lib.strnstr("Hello World All", "", 10));
+    try std.testing.expectEqualStrings("Hello World", try lib.strnstr("Hello World", "Hello", 5));
+    try std.testing.expectError(error.NotFound, lib.strnstr("Hello World", "World", 5));
+}
+
+// // ✅ Test cases pour strdup
+test "strdup" {
+    try std.testing.expectEqualStrings("Hello World", try lib.strdup(allocator, "Hello World"));
+    try std.testing.expectEqualStrings("Hello World All", try lib.strdup(allocator, "Hello World All"));
+    try std.testing.expectEqualStrings("Hello", try lib.strdup(allocator, "Hello"));
+}
+
+// // ✅ Test cases pour bzero
+test "bzero" {
+    var buffer: [5]u8 = [_]u8{1, 2, 3, 4, 5};
+    try lib.bzero(&buffer, 3); 
+
+    try std.testing.expectEqual(0, buffer[0]); 
+    try std.testing.expectEqual(0, buffer[1]); 
+    try std.testing.expectEqual(0, buffer[2]); 
+    try std.testing.expectEqual(4, buffer[3]); 
+    try std.testing.expectEqual(5, buffer[4]); 
 }
