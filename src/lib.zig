@@ -90,6 +90,7 @@ pub fn strrchr(str: []const u8, c: u8) ?[]const u8 {
     return null;
 }
 
+//Return 2 if s1 is strictly equal to s2
 pub fn strcmp(s1: []const u8, s2: []const u8) i8 {
     return @intFromEnum(std.mem.order(u8, s1, s2));
 }
@@ -138,7 +139,7 @@ pub fn strnstr(str: []const u8, to_find: []const u8, n: usize) ![]const u8 {
 }
 
 pub fn strdup(allocator: std.mem.Allocator, str: []const u8) ![] u8 {
-    const cpy = try mem.alloc(allocator, u8, str.len);
+    const cpy: [] u8 = try allocator.alloc(u8, str.len);
     @memcpy(cpy, str);
     return cpy;
 }
@@ -148,4 +149,28 @@ pub fn bzero(s: [*]u8, n: usize) !void {
 
     while (i < n) : (i += 1)
         s[i] = 0;
+}
+
+/////////Additional String functions
+/////////not in libc
+
+pub fn substr(allocator: mem, str: []const u8, start: usize, len: usize) ![] u8 {
+    if (start >= str.len) return error.OutOfBounds;
+
+    const sub_len = if (start + len > str.len) str.len - start else len;
+    const sub: []u8 = try allocator.alloc(u8, sub_len);
+
+    @memcpy(sub, str[start .. start + sub_len]);
+
+    return sub;
+}
+
+pub fn strjoin(allocator: mem, s1: []const u8, s2: []const u8) ![] u8 {
+    const join_len = s1.len + s2.len;
+
+    var join: [] u8 = try allocator.alloc(u8, join_len);
+    @memcpy(join[0..s1.len], s1);
+    @memcpy(join[s1.len..], s2); 
+
+    return join;
 }

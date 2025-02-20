@@ -177,3 +177,18 @@ test "bzero" {
     try std.testing.expectEqual(4, buffer[3]); 
     try std.testing.expectEqual(5, buffer[4]); 
 }
+
+// // ✅ Test cases pour substr
+test "substr" {
+    try std.testing.expectEqualStrings("World", try lib.substr(allocator, "Hello World", 6, 5));
+    try std.testing.expectEqualStrings("Hello World", try lib.substr(allocator, "Hello World All", 0, 11));
+    try std.testing.expectEqualStrings("ell", try lib.substr(allocator, "Hello", 1, 3));
+}
+
+// // ✅ Test cases pour strjoin
+test "strjoin" {
+    try std.testing.expectEqualStrings("Hello World", try lib.strjoin(allocator, "Hello", " World"));
+    try std.testing.expectEqualStrings("Hello World All", try lib.strjoin(allocator, "Hello World", " All"));
+    try std.testing.expectEqualStrings("Hello", try lib.strjoin(allocator, "Hello", ""));
+    try std.testing.expectEqualStrings("World", try lib.strjoin(allocator, "", "World"));
+}
