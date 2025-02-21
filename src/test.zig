@@ -192,3 +192,12 @@ test "strjoin" {
     try std.testing.expectEqualStrings("Hello", try lib.strjoin(allocator, "Hello", ""));
     try std.testing.expectEqualStrings("World", try lib.strjoin(allocator, "", "World"));
 }
+
+// // ✅ Test cases pour strtrim
+test "strtrim" {
+    try std.testing.expectEqualStrings("Hello", try lib.strtrim(allocator, "  Hello  ", " "));
+    try std.testing.expectEqualStrings("Hello", try lib.strtrim(allocator, "  abHellocd  ", " abcd"));
+    try std.testing.expectEqualStrings("Hello", try lib.strtrim(allocator, "\t  Hello  \n", " \t\n"));
+    try std.testing.expectEqualStrings("", try lib.strtrim(allocator, "", " \t\n"));
+
+}

@@ -174,3 +174,100 @@ pub fn strjoin(allocator: mem, s1: []const u8, s2: []const u8) ![] u8 {
 
     return join;
 }
+
+pub fn strtrim(allocator: mem, str: []const u8, charset: [] const u8) ![] u8 {
+    var i: usize = 0;
+    var j: usize = 0;
+    var isset: bool = false;
+
+    if (str.len == 0) return try allocator.alloc(u8, 0);
+
+    while (i < str.len) : (i += 1){
+        j = 0;
+        isset = false;
+        while (j < charset.len) : (j += 1) {
+            if (str[i] == charset[j]){
+                isset = true;
+                break;
+            }
+        }
+        if (isset == false)
+            break;
+    }
+    const start: usize = i;
+
+    if (start == str.len) return try allocator.alloc(u8, 0);
+    
+    i = str.len - 1;
+    while (i > 0) : (i -= 1){
+        j = 0;
+        isset = false;
+        while (j < charset.len) : (j += 1) {
+            if (str[i] == charset[j]){
+                isset = true;
+                break;
+            }
+        }
+        if (isset == false)
+            break;
+    }
+    const end: usize = i + 1;
+
+    const trim_len = end - start;
+    if (trim_len == 0) return error.AllocByZeroLength;
+    const trim: [] u8 = try allocator.alloc(u8, end - start);
+    @memcpy(trim, str[start..end]);
+
+    return trim;
+}
+
+pub fn split(allocator: std.mem.Allocator, str: []const u8, c: u8) ![][]u8 {
+    var word_count: usize = 0;
+    var i: usize = 0;
+
+    while (i < str.len) : (i += 1) {
+        if (str[i] == c) {
+            while (i < str.len and str[i] == c) : (i += 1) {}
+            if (i < str.len) word_count += 1;
+        }
+    }
+    if (str.len > 0 and str[0] != c) word_count += 1;
+
+    if (word_count == 0) return try allocator.alloc([]u8, 0);
+
+    const res = try allocator.alloc([]u8, word_count);
+
+    i = 0;
+    var j: usize = 0;
+    while (i < str.len) : (i += 1) {
+        while (i < str.len and str[i] == c) : (i += 1) {}
+        if (i >= str.len) break; // ✅ Éviter un dépassement
+        const start: usize = i;
+        while (i < str.len and str[i] != c) : (i += 1) {}
+        const end: usize = i;
+
+        res[j] = try allocator.alloc(u8, end - start);
+        @memcpy(res[j], str[start..end]);
+        j += 1;
+    }
+
+    return res;
+}
+
+/////////Additional Files functions
+
+pub fn putchar_fd(file: std.fs.File, c: u8) !void {
+    try file.writer().writeByte(c);
+}
+
+pub fn putstr_fd(file: std.fs.File, str: []const u8) !void {
+    try file.writer().writeAll(str);
+}
+
+pub fn putendl_fd(file: std.fs.File, str: []const u8) !void {
+    try putstr_fd(file, str ++ "\n");
+}
+
+pub fn putnbr_fd(file: std.fs.File, n: i64) !void {
+    try file.writer().writeInt(i64, n, std.builtin.Endian.big);
+}
